@@ -1,0 +1,40 @@
+package org.phenoscape.owl;
+
+public class Vocab {
+    
+    public static class OBO {
+
+        public static final String IS_A = "OBO_REL:is_a";
+        public static final String INHERES_IN = "OBO_REL:inheres_in";
+        public static final String INHERES_IN_PART_OF = "OBO_REL:inheres_in_part_of";
+        public static final String TOWARDS = "OBO_REL:towards";
+        public static final String HAS_PART = "OBO_REL:has_part";
+        public static final String BEARER_OF = "OBO_REL:bearer_of";
+    }
+
+    public static class CDAO {
+        
+        public static final String PREFIX = "http://www.evolutionaryontology.org/cdao/1.0/cdao.owl#";
+        public static final String STANDARD_CHARACTER = PREFIX + "StandardCharacter";
+        public static final String STANDARD_STATE = PREFIX + "Standard";
+        public static final String DATA_MATRIX = PREFIX + "CharacterStateDataMatrix";
+        public static final String MATRIX_CELL = PREFIX + "StandardStateDatum";
+        public static final String OTU = PREFIX + "TU";
+        
+        public static final String HAS_TU = PREFIX + "has_TU";
+        public static final String HAS_CHARACTER = PREFIX + "has_Character";
+        public static final String BELONGS_TO_CHARACTER = PREFIX + "belongs_to_Character";
+        public static final String BELONGS_TO_TU = PREFIX + "belongs_to_TU";
+        public static final String HAS_STATE = PREFIX + "has_State";
+
+    }
+    
+    public static class PHENOSCAPE {
+        public static final String PREFIX = "http://vocab.phenoscape.org/";
+        public static final String PUBLICATION = PREFIX + "publication";
+        public static final String TAXON = PREFIX + "taxon";
+        public static final String REPRESENTS_TAXON = PREFIX + "represents_taxon";
+        public static final String POSITED_BY = PREFIX + "posited_by";
+    }
+
+}
