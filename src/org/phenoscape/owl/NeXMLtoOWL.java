@@ -13,9 +13,11 @@ import org.obo.util.TermUtil;
 import org.phenoscape.model.Character;
 import org.phenoscape.model.DataSet;
 import org.phenoscape.model.Phenotype;
+import org.phenoscape.model.Specimen;
 import org.phenoscape.model.State;
 import org.phenoscape.model.Taxon;
 import org.phenoscape.owl.Vocab.CDAO;
+import org.phenoscape.owl.Vocab.DWC;
 import org.phenoscape.owl.Vocab.OBO_REL;
 import org.phenoscape.owl.Vocab.PHENOSCAPE;
 import org.semanticweb.owlapi.model.AddImport;
@@ -24,10 +26,12 @@ import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationSubject;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
+import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLDataProperty;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
@@ -111,7 +115,23 @@ public class NeXMLtoOWL {
             final OWLLiteral comment = factory.getOWLLiteral(taxon.getComment());
             this.addAnnotation(OWLRDFVocabulary.RDFS_COMMENT.getIRI(), otu.getIRI(), comment);
         }
-        //TODO specimens
+        for (Specimen specimen : taxon.getSpecimens()) {
+            final OWLAnonymousIndividual owlSpecimen = this.factory.getOWLAnonymousIndividual();
+            this.addPropertyAssertion(IRI.create(DWC.HAS_SPECIMEN), otu, owlSpecimen);
+            this.translateSpecimen(specimen, owlSpecimen);
+        }
+    }
+    
+    private void translateSpecimen(Specimen specimen, OWLAnonymousIndividual owlSpecimen) {
+        this.addClass(owlSpecimen, this.factory.getOWLClass(IRI.create(PHENOSCAPE.SPECIMEN)));
+        if (specimen.getCollectionCode() != null) {
+            final OWLIndividual collection = this.factory.getOWLNamedIndividual(this.convertOBOIRI(specimen.getCollectionCode().getID()));
+            this.addPropertyAssertion(IRI.create(DWC.SPECIMEN_TO_COLLECTION), owlSpecimen, collection);
+        }
+        if (StringUtils.isNotBlank(specimen.getCatalogID())) {
+            final OWLDataProperty property = this.factory.getOWLDataProperty(IRI.create(DWC.SPECIMEN_TO_CATALOG_ID));
+            this.ontologyManager.addAxiom(this.ontology, this.factory.getOWLDataPropertyAssertionAxiom(property, owlSpecimen, specimen.getCatalogID()));
+        }
     }
 
     private void translateCharacter(Character character, OWLNamedIndividual owlCharacter) {

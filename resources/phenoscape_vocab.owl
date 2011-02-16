@@ -88,6 +88,12 @@
     
 
 
+    <!-- http://vocab.phenoscape.org/specimen -->
+
+    <owl:Class rdf:about="&vocab;specimen"/>
+    
+
+
     <!-- http://vocab.phenoscape.org/taxon -->
 
     <owl:Class rdf:about="&vocab;taxon"/>

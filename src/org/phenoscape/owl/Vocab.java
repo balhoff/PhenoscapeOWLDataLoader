@@ -36,6 +36,14 @@ public class Vocab {
         public static final String TAXON = PREFIX + "taxon";
         public static final String REPRESENTS_TAXON = PREFIX + "represents_taxon";
         public static final String POSITED_BY = PREFIX + "posited_by";
+        public static final String SPECIMEN = PREFIX + "specimen";
+    }
+    
+    public static class DWC {
+        public static final String PREFIX = "http://rs.tdwg.org/dwc/terms/";
+        public static final String HAS_SPECIMEN = PREFIX + "individualID";
+        public static final String SPECIMEN_TO_COLLECTION = PREFIX + "collectionID";
+        public static final String SPECIMEN_TO_CATALOG_ID = PREFIX + "catalogNumber";
     }
 
 }
