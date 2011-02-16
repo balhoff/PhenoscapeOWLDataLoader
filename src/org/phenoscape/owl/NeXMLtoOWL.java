@@ -16,7 +16,7 @@ import org.phenoscape.model.Phenotype;
 import org.phenoscape.model.State;
 import org.phenoscape.model.Taxon;
 import org.phenoscape.owl.Vocab.CDAO;
-import org.phenoscape.owl.Vocab.OBO;
+import org.phenoscape.owl.Vocab.OBO_REL;
 import org.phenoscape.owl.Vocab.PHENOSCAPE;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.IRI;
@@ -159,20 +159,20 @@ public class NeXMLtoOWL {
         if (phenotype.getEntity() == null || phenotype.getQuality() == null) {
             return;
         }
-        final OWLObjectProperty bearerOf = this.factory.getOWLObjectProperty(this.convertOBOIRI(OBO.BEARER_OF));
+        final OWLObjectProperty bearerOf = this.factory.getOWLObjectProperty(IRI.create(OBO_REL.BEARER_OF));
         final OWLClassExpression entity = this.convertOBOClass(phenotype.getEntity());
         final OWLClassExpression qualityTerm = this.convertOBOClass(phenotype.getQuality());
         final OWLClassExpression quality;
         if (phenotype.getRelatedEntity() != null) {
             final OWLClassExpression relatedEntity = this.convertOBOClass(phenotype.getRelatedEntity());
-            final OWLObjectProperty towards = this.factory.getOWLObjectProperty(this.convertOBOIRI(OBO.TOWARDS));
+            final OWLObjectProperty towards = this.factory.getOWLObjectProperty(IRI.create(OBO_REL.TOWARDS));
             quality = this.factory.getOWLObjectIntersectionOf(qualityTerm, this.factory.getOWLObjectSomeValuesFrom(towards, relatedEntity));
         } else {
             quality = qualityTerm;
         }
         final OWLClassExpression eq = this.factory.getOWLObjectIntersectionOf(entity, this.factory.getOWLObjectSomeValuesFrom(bearerOf, quality));
         //TODO measurements, counts, etc.
-        final OWLObjectProperty hasPart = this.factory.getOWLObjectProperty(this.convertOBOIRI(OBO.HAS_PART));
+        final OWLObjectProperty hasPart = this.factory.getOWLObjectProperty(IRI.create(OBO_REL.HAS_PART));
         this.ontologyManager.addAxiom(this.ontology, this.factory.getOWLEquivalentClassesAxiom(owlPhenotype, this.factory.getOWLObjectSomeValuesFrom(hasPart, eq)));
     }
 

@@ -2,14 +2,15 @@ package org.phenoscape.owl;
 
 public class Vocab {
     
-    public static class OBO {
-
-        public static final String IS_A = "OBO_REL:is_a";
-        public static final String INHERES_IN = "OBO_REL:inheres_in";
-        public static final String INHERES_IN_PART_OF = "OBO_REL:inheres_in_part_of";
-        public static final String TOWARDS = "OBO_REL:towards";
-        public static final String HAS_PART = "OBO_REL:has_part";
-        public static final String BEARER_OF = "OBO_REL:bearer_of";
+    public static class OBO_REL {
+        
+        public static final String PREFIX = "http://purl.obolibrary.org/obo/";
+        public static final String IS_A = "OBO_REL_is_a";
+        public static final String INHERES_IN = "OBO_REL_inheres_in";
+        public static final String INHERES_IN_PART_OF = "OBO_REL_inheres_in_part_of";
+        public static final String TOWARDS = "OBO_REL_towards";
+        public static final String HAS_PART = "OBO_REL_has_part";
+        public static final String BEARER_OF = "OBO_REL_bearer_of";
     }
 
     public static class CDAO {
