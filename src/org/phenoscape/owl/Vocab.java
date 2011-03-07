@@ -37,7 +37,7 @@ public class Vocab {
         public static final String REPRESENTS_TAXON = PREFIX + "represents_taxon";
         public static final String POSITED_BY = PREFIX + "posited_by";
         public static final String SPECIMEN = PREFIX + "specimen";
-        public static final String HAS_COUNTED_PART = PREFIX + "has_counted_part";
+        public static final String HAS_COMPONENT_PART = PREFIX + "has_component_part";
     }
     
     public static class DWC {

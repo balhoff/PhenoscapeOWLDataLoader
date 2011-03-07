@@ -85,10 +85,10 @@
     
 
 
-    <!-- http://vocab.phenoscape.org/has_counted_part -->
+    <!-- http://vocab.phenoscape.org/has_component_part -->
 
-    <owl:ObjectProperty rdf:about="&vocab;has_counted_part">
-        <rdfs:label>has_counted_part</rdfs:label>
+    <owl:ObjectProperty rdf:about="&vocab;has_component_part">
+        <rdfs:label>has_component_part</rdfs:label>
         <rdfs:subPropertyOf rdf:resource="&obo;OBO_REL_has_part"/>
     </owl:ObjectProperty>
     
