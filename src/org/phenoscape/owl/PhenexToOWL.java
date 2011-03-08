@@ -41,7 +41,7 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
-public class NeXMLtoOWL {
+public class PhenexToOWL {
 
     final OWLOntologyManager ontologyManager;
     final OWLOntology ontology;
@@ -51,7 +51,7 @@ public class NeXMLtoOWL {
     final Map<Taxon, OWLNamedIndividual> taxonOTUToOWLMap = new HashMap<Taxon, OWLNamedIndividual>();
     final Map<Phenotype, OWLClassExpression> phenotypeToOWLMap = new HashMap<Phenotype, OWLClassExpression>(); 
 
-    public NeXMLtoOWL(OWLOntology ontology) throws OWLOntologyCreationException {
+    public PhenexToOWL(OWLOntology ontology) throws OWLOntologyCreationException {
         this.ontology = ontology;
         this.ontologyManager = ontology.getOWLOntologyManager();
         this.factory = this.ontologyManager.getOWLDataFactory();
