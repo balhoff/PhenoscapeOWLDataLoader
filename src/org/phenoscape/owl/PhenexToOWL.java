@@ -179,6 +179,7 @@ public class PhenexToOWL {
         if (phenotype.getEntity() == null || phenotype.getQuality() == null) {
             return;
         }
+        final OWLObjectProperty hasMember = this.factory.getOWLObjectProperty(IRI.create(PHENOSCAPE.HAS_MEMBER));
         final OWLObjectProperty bearerOf = this.factory.getOWLObjectProperty(IRI.create(OBO_REL.BEARER_OF));
         final OWLClassExpression entity = this.convertOBOClass(phenotype.getEntity());
         final OWLClassExpression qualityTerm = this.convertOBOClass(phenotype.getQuality());
@@ -193,7 +194,7 @@ public class PhenexToOWL {
         final OWLClassExpression eq = this.factory.getOWLObjectIntersectionOf(entity, this.factory.getOWLObjectSomeValuesFrom(bearerOf, quality));
         //TODO measurements, counts, etc.
         final OWLObjectProperty hasPart = this.factory.getOWLObjectProperty(IRI.create(OBO_REL.HAS_PART));
-        this.ontologyManager.addAxiom(this.ontology, this.factory.getOWLEquivalentClassesAxiom(owlPhenotype, this.factory.getOWLObjectSomeValuesFrom(hasPart, eq)));
+        this.ontologyManager.addAxiom(this.ontology, this.factory.getOWLEquivalentClassesAxiom(owlPhenotype, this.factory.getOWLObjectSomeValuesFrom(hasMember, this.factory.getOWLObjectSomeValuesFrom(hasPart, eq))));
     }
 
     private void translateMatrixCell(Taxon taxon, Character character, State state, OWLNamedIndividual matrixCell) {

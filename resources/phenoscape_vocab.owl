@@ -69,6 +69,7 @@
     <!-- http://purl.obolibrary.org/obo/OBO_REL_has_part -->
 
     <owl:ObjectProperty rdf:about="&obo;OBO_REL_has_part">
+        <rdf:type rdf:resource="&owl;ReflexiveProperty"/>
         <rdf:type rdf:resource="&owl;TransitiveProperty"/>
         <rdfs:label>has_part</rdfs:label>
     </owl:ObjectProperty>
@@ -90,6 +91,23 @@
     <owl:ObjectProperty rdf:about="&vocab;has_component_part">
         <rdfs:label>has_component_part</rdfs:label>
         <rdfs:subPropertyOf rdf:resource="&obo;OBO_REL_has_part"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://vocab.phenoscape.org/has_member -->
+
+    <owl:ObjectProperty rdf:about="&vocab;has_member">
+        <rdfs:label>has_member</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://vocab.phenoscape.org/member_of -->
+
+    <owl:ObjectProperty rdf:about="&vocab;member_of">
+        <rdfs:label>member_of</rdfs:label>
+        <owl:inverseOf rdf:resource="&vocab;has_member"/>
     </owl:ObjectProperty>
     
 
