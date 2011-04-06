@@ -17,5 +17,6 @@
 	<classpathentry kind="lib" path="lib/glazedlists-1.7.0_java15.jar"/>
 	<classpathentry kind="lib" path="lib/bbop.jar"/>
 	<classpathentry kind="lib" path="lib/obo.jar"/>
+	<classpathentry kind="lib" path="lib/log4j-1.2.13.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
