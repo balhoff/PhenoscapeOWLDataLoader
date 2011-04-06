@@ -26,6 +26,7 @@ public class OWLMerger {
     public OWLMerger() throws OWLOntologyCreationException, OWLOntologyStorageException {
         super();
         this.manager = OWLManager.createOWLOntologyManager();
+        this.manager.setSilentMissingImportsHandling(true);
         this.processFolder(new File(System.getProperty(ONTOLOGY_DIR)));
         this.processFolder(new File(System.getProperty(DATA_DIR)));
         final OWLOntologyMerger merger = new OWLOntologyMerger(this.manager);

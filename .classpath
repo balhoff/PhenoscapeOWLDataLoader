@@ -18,5 +18,9 @@
 	<classpathentry kind="lib" path="lib/bbop.jar"/>
 	<classpathentry kind="lib" path="lib/obo.jar"/>
 	<classpathentry kind="lib" path="lib/log4j-1.2.13.jar"/>
+	<classpathentry kind="lib" path="lib/xbean.jar"/>
+	<classpathentry kind="lib" path="lib/nexmlbeans-dict.jar"/>
+	<classpathentry kind="lib" path="lib/nexmlbeans2009.jar"/>
+	<classpathentry kind="lib" path="lib/phenoxmlbeans.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
