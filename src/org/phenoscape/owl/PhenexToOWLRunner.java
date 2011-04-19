@@ -18,7 +18,7 @@ import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
 public class PhenexToOWLRunner {
     
-    /** The data-dir system property should contain the path to a folder with OWL data files to be loaded. */
+    /** The data-dir system property should contain the path to a folder with NeXML data files to be loaded. */
     public static final String DATA_DIR = "data-dir";
     private final OWLOntologyManager manager;
 
