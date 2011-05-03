@@ -5,12 +5,12 @@ public class Vocab {
     public static class OBO_REL {
         
         public static final String PREFIX = "http://purl.obolibrary.org/obo/";
-        public static final String IS_A = "OBO_REL_is_a";
-        public static final String INHERES_IN = "OBO_REL_inheres_in";
-        public static final String INHERES_IN_PART_OF = "OBO_REL_inheres_in_part_of";
-        public static final String TOWARDS = "OBO_REL_towards";
-        public static final String HAS_PART = "OBO_REL_has_part";
-        public static final String BEARER_OF = "OBO_REL_bearer_of";
+        public static final String IS_A = PREFIX + "OBO_REL_is_a";
+        public static final String INHERES_IN = PREFIX + "OBO_REL_inheres_in";
+        public static final String INHERES_IN_PART_OF = PREFIX + "OBO_REL_inheres_in_part_of";
+        public static final String TOWARDS = PREFIX + "OBO_REL_towards";
+        public static final String HAS_PART = PREFIX + "OBO_REL_has_part";
+        public static final String BEARER_OF = PREFIX + "OBO_REL_bearer_of";
     }
 
     public static class CDAO {
