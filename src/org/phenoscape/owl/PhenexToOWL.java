@@ -1,5 +1,6 @@
 package org.phenoscape.owl;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -18,9 +19,9 @@ import org.phenoscape.model.State;
 import org.phenoscape.model.Taxon;
 import org.phenoscape.owl.Vocab.CDAO;
 import org.phenoscape.owl.Vocab.DWC;
+import org.phenoscape.owl.Vocab.IAO;
 import org.phenoscape.owl.Vocab.OBO_REL;
 import org.phenoscape.owl.Vocab.PHENOSCAPE;
-import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
@@ -32,10 +33,15 @@ import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDataProperty;
+import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
+import org.semanticweb.owlapi.model.OWLObjectAllValuesFrom;
+import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
+import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
@@ -49,13 +55,13 @@ public class PhenexToOWL {
     final Map<Character, OWLNamedIndividual> characterToOWLMap = new HashMap<Character, OWLNamedIndividual>();
     final Map<State, OWLNamedIndividual> stateToOWLMap = new HashMap<State, OWLNamedIndividual>();
     final Map<Taxon, OWLNamedIndividual> taxonOTUToOWLMap = new HashMap<Taxon, OWLNamedIndividual>();
-    final Map<Phenotype, OWLClassExpression> phenotypeToOWLMap = new HashMap<Phenotype, OWLClassExpression>(); 
+    final Map<Phenotype, OWLClass> phenotypeToOWLMap = new HashMap<Phenotype, OWLClass>(); 
 
     public PhenexToOWL(OWLOntology ontology) throws OWLOntologyCreationException {
         this.ontology = ontology;
         this.ontologyManager = ontology.getOWLOntologyManager();
         this.factory = this.ontologyManager.getOWLDataFactory();
-        this.ontologyManager.applyChange(new AddImport(this.ontology, this.factory.getOWLImportsDeclaration(IRI.create(PHENOSCAPE.PREFIX))));
+        //this.ontologyManager.applyChange(new AddImport(this.ontology, this.factory.getOWLImportsDeclaration(IRI.create(PHENOSCAPE.PREFIX))));
     }
 
     public void translateDataSet(DataSet dataSet) {
@@ -121,7 +127,7 @@ public class PhenexToOWL {
             this.translateSpecimen(specimen, owlSpecimen);
         }
     }
-    
+
     private void translateSpecimen(Specimen specimen, OWLAnonymousIndividual owlSpecimen) {
         this.addClass(owlSpecimen, this.factory.getOWLClass(IRI.create(PHENOSCAPE.SPECIMEN)));
         if (specimen.getCollectionCode() != null) {
@@ -166,10 +172,13 @@ public class PhenexToOWL {
             this.addAnnotation(OWLRDFVocabulary.RDFS_COMMENT.getIRI(), owlState.getIRI(), comment);
         }
         int phenotypeIndex = 0;
+        final OWLObjectProperty denotes = this.factory.getOWLObjectProperty(IRI.create(IAO.DENOTES));
         for (Phenotype phenotype : state.getPhenotypes()) {
             phenotypeIndex++;
             final IRI phenotypeIRI = IRI.create(owlState.getIRI().toURI().toString() + "/phenotype/" + phenotypeIndex);
             final OWLClass owlPhenotype = this.factory.getOWLClass(phenotypeIRI);
+            final OWLObjectAllValuesFrom denotesOnlyPhenotype = this.factory.getOWLObjectAllValuesFrom(denotes, owlPhenotype);
+            this.ontologyManager.addAxiom(ontology, this.factory.getOWLClassAssertionAxiom(denotesOnlyPhenotype, owlState));
             this.translatePhenotype(phenotype, owlPhenotype);
         }
     }
@@ -179,7 +188,6 @@ public class PhenexToOWL {
         if (phenotype.getEntity() == null || phenotype.getQuality() == null) {
             return;
         }
-        final OWLObjectProperty hasMember = this.factory.getOWLObjectProperty(IRI.create(PHENOSCAPE.HAS_MEMBER));
         final OWLObjectProperty bearerOf = this.factory.getOWLObjectProperty(IRI.create(OBO_REL.BEARER_OF));
         final OWLClassExpression entity = this.convertOBOClass(phenotype.getEntity());
         final OWLClassExpression qualityTerm = this.convertOBOClass(phenotype.getQuality());
@@ -194,7 +202,10 @@ public class PhenexToOWL {
         final OWLClassExpression eq = this.factory.getOWLObjectIntersectionOf(entity, this.factory.getOWLObjectSomeValuesFrom(bearerOf, quality));
         //TODO measurements, counts, etc.
         final OWLObjectProperty hasPart = this.factory.getOWLObjectProperty(IRI.create(OBO_REL.HAS_PART));
-        this.ontologyManager.addAxiom(this.ontology, this.factory.getOWLEquivalentClassesAxiom(owlPhenotype, this.factory.getOWLObjectSomeValuesFrom(hasMember, this.factory.getOWLObjectSomeValuesFrom(hasPart, eq))));
+        final OWLClassExpression hasPartSomeEQ = this.factory.getOWLObjectSomeValuesFrom(hasPart, eq);
+        final OWLObjectProperty hasMember = this.factory.getOWLObjectProperty(IRI.create(PHENOSCAPE.HAS_MEMBER));
+        final OWLClassExpression hasMemberSomeHasPart = this.factory.getOWLObjectSomeValuesFrom(hasMember, hasPartSomeEQ);
+        this.ontologyManager.addAxiom(this.ontology, this.factory.getOWLEquivalentClassesAxiom(owlPhenotype, hasMemberSomeHasPart));
     }
 
     private void translateMatrixCell(Taxon taxon, Character character, State state, OWLNamedIndividual matrixCell) {
@@ -206,13 +217,13 @@ public class PhenexToOWL {
             final IRI taxonIRI = this.convertOBOIRI(taxon.getValidName().getID());
             final OWLNamedIndividual taxonIndividual = this.factory.getOWLNamedIndividual(taxonIRI);
             for (Phenotype phenotype : state.getPhenotypes()) {
-                final OWLClassExpression owlPhenotype = this.phenotypeToOWLMap.get(phenotype);
+                final OWLClass owlPhenotype = this.phenotypeToOWLMap.get(phenotype);
                 final OWLAnnotationProperty positedBy = this.factory.getOWLAnnotationProperty(IRI.create(PHENOSCAPE.POSITED_BY));
                 final OWLAnnotation positedByAnnotation = this.factory.getOWLAnnotation(positedBy, matrixCell.getIRI());
-                final Set<OWLAnnotation> annotations = new HashSet<OWLAnnotation>();
-                annotations.add(positedByAnnotation);
-                final OWLClassAssertionAxiom classAssertion = this.factory.getOWLClassAssertionAxiom(owlPhenotype, taxonIndividual, annotations);
-                this.ontologyManager.addAxiom(this.ontology, classAssertion);
+                final Set<OWLAnnotation> annotations = Collections.singleton(positedByAnnotation);
+                final OWLClassAssertionAxiom annotatedClassAssertion = this.factory.getOWLClassAssertionAxiom(owlPhenotype, taxonIndividual, annotations);
+                this.ontologyManager.addAxiom(this.ontology, annotatedClassAssertion);
+                this.instantiateClassAssertion(taxonIndividual, owlPhenotype, true);
             }
         }
     }
@@ -249,6 +260,35 @@ public class PhenexToOWL {
 
     private void addClass(OWLIndividual individual, OWLClassExpression aClass) {
         this.ontologyManager.addAxiom(this.ontology, this.factory.getOWLClassAssertionAxiom(aClass, individual));
+    }
+    
+    private void instantiateClassAssertion(OWLIndividual individual, OWLClassExpression aClass, boolean expandNamedClass) {
+        if (aClass instanceof OWLClass) {
+            if (expandNamedClass) {
+                for (OWLEquivalentClassesAxiom axiom : this.ontology.getEquivalentClassesAxioms(aClass.asOWLClass())) {
+                    for (OWLClassExpression expression : axiom.getClassExpressionsMinus(aClass)) {
+                        if (expression instanceof OWLObjectSomeValuesFrom) {
+                            this.instantiateClassAssertion(individual, expression, false);
+                        }
+                    }
+                }
+            } else {
+                this.ontologyManager.addAxiom(this.ontology, this.factory.getOWLClassAssertionAxiom(aClass, individual));
+            }
+        } else if (aClass instanceof OWLObjectSomeValuesFrom) {
+            final OWLObjectSomeValuesFrom svf = (OWLObjectSomeValuesFrom)aClass;
+            final OWLClassExpression filler = svf.getFiller();
+            final OWLObjectPropertyExpression property = svf.getProperty();
+            final OWLIndividual value = this.factory.getOWLAnonymousIndividual();
+            this.ontologyManager.addAxiom(this.ontology, this.factory.getOWLObjectPropertyAssertionAxiom(property, individual, value));
+            this.instantiateClassAssertion(value, filler, false);
+        } else if (aClass instanceof OWLObjectIntersectionOf) {
+            for (OWLClassExpression operand : ((OWLObjectIntersectionOf)aClass).getOperands()) {
+                this.instantiateClassAssertion(individual, operand, false);
+            }
+        } else {
+            this.ontologyManager.addAxiom(this.ontology, this.factory.getOWLClassAssertionAxiom(aClass, individual));
+        }
     }
 
     private void clearMaps() {

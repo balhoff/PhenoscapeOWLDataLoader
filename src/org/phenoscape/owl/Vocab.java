@@ -34,7 +34,7 @@ public class Vocab {
         public static final String PREFIX = "http://vocab.phenoscape.org/";
         public static final String PUBLICATION = PREFIX + "publication";
         public static final String TAXON = PREFIX + "taxon";
-        public static final String REPRESENTS_TAXON = PREFIX + "represents_taxon";
+        public static final String REPRESENTS_TAXON = PREFIX + "represents_taxon"; //FIXME - replace with CDAO:external_reference
         public static final String POSITED_BY = PREFIX + "posited_by";
         public static final String SPECIMEN = PREFIX + "specimen";
         public static final String HAS_COMPONENT_PART = PREFIX + "has_component_part";
@@ -46,6 +46,11 @@ public class Vocab {
         public static final String HAS_SPECIMEN = PREFIX + "individualID";
         public static final String SPECIMEN_TO_COLLECTION = PREFIX + "collectionID";
         public static final String SPECIMEN_TO_CATALOG_ID = PREFIX + "catalogNumber";
+    }
+    
+    public static class IAO {
+        public static final String PREFIX = "http://purl.obolibrary.org/obo/";
+        public static final String DENOTES = "IAO_0000219";
     }
 
 }

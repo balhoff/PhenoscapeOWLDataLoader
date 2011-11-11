@@ -61,6 +61,7 @@
     <!-- http://purl.obolibrary.org/obo/OBO_REL_bearer_of -->
 
     <owl:ObjectProperty rdf:about="&obo;OBO_REL_bearer_of">
+        <rdf:type rdf:resource="&owl;InverseFunctionalProperty"/>
         <rdfs:label>bearer_of</rdfs:label>
     </owl:ObjectProperty>
     
@@ -69,7 +70,6 @@
     <!-- http://purl.obolibrary.org/obo/OBO_REL_has_part -->
 
     <owl:ObjectProperty rdf:about="&obo;OBO_REL_has_part">
-        <rdf:type rdf:resource="&owl;ReflexiveProperty"/>
         <rdf:type rdf:resource="&owl;TransitiveProperty"/>
         <rdfs:label>has_part</rdfs:label>
     </owl:ObjectProperty>
@@ -82,6 +82,27 @@
         <rdf:type rdf:resource="&owl;FunctionalProperty"/>
         <rdfs:label>inheres_in</rdfs:label>
         <owl:inverseOf rdf:resource="&obo;OBO_REL_bearer_of"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.obolibrary.org/obo/OBO_REL_part_of -->
+
+    <owl:ObjectProperty rdf:about="&obo;OBO_REL_part_of">
+        <rdf:type rdf:resource="&owl;TransitiveProperty"/>
+        <rdfs:label>part_of</rdfs:label>
+        <owl:inverseOf rdf:resource="&obo;OBO_REL_has_part"/>
+        <rdfs:subPropertyOf rdf:resource="&owl;topObjectProperty"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://vocab.phenoscape.org/contains_clade -->
+
+    <owl:ObjectProperty rdf:about="&vocab;contains_clade">
+        <rdf:type rdf:resource="&owl;TransitiveProperty"/>
+        <rdfs:range rdf:resource="&vocab;taxon"/>
+        <rdfs:domain rdf:resource="&vocab;taxon"/>
     </owl:ObjectProperty>
     
 
@@ -103,11 +124,21 @@
     
 
 
+    <!-- http://vocab.phenoscape.org/has_rank -->
+
+    <owl:ObjectProperty rdf:about="&vocab;has_rank"/>
+    
+
+
     <!-- http://vocab.phenoscape.org/member_of -->
 
     <owl:ObjectProperty rdf:about="&vocab;member_of">
         <rdfs:label>member_of</rdfs:label>
         <owl:inverseOf rdf:resource="&vocab;has_member"/>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="&vocab;member_of"/>
+            <rdf:Description rdf:about="&vocab;subclade_of"/>
+        </owl:propertyChainAxiom>
     </owl:ObjectProperty>
     
 
@@ -116,6 +147,17 @@
 
     <owl:ObjectProperty rdf:about="&vocab;represents_taxon">
         <rdfs:label>represents_taxon</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://vocab.phenoscape.org/subclade_of -->
+
+    <owl:ObjectProperty rdf:about="&vocab;subclade_of">
+        <rdf:type rdf:resource="&owl;TransitiveProperty"/>
+        <owl:inverseOf rdf:resource="&vocab;contains_clade"/>
+        <rdfs:domain rdf:resource="&vocab;taxon"/>
+        <rdfs:range rdf:resource="&vocab;taxon"/>
     </owl:ObjectProperty>
     
 
@@ -146,6 +188,25 @@
     <!-- http://vocab.phenoscape.org/taxon -->
 
     <owl:Class rdf:about="&vocab;taxon"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // General axioms
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    <rdf:Description>
+        <rdf:type rdf:resource="&owl;AllDisjointClasses"/>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="&vocab;publication"/>
+            <rdf:Description rdf:about="&vocab;specimen"/>
+            <rdf:Description rdf:about="&vocab;taxon"/>
+        </owl:members>
+    </rdf:Description>
 </rdf:RDF>
 
 

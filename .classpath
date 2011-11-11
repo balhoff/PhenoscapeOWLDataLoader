@@ -22,5 +22,6 @@
 	<classpathentry kind="lib" path="lib/nexmlbeans-dict.jar"/>
 	<classpathentry kind="lib" path="lib/nexmlbeans2009.jar"/>
 	<classpathentry kind="lib" path="lib/phenoxmlbeans.jar"/>
+	<classpathentry kind="lib" path="lib/germ.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
