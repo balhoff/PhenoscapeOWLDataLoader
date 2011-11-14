@@ -250,18 +250,26 @@ public class PhenexToOWL {
 
     private void addAnnotation(IRI property, OWLAnnotationSubject subject, OWLAnnotationValue value) {
         final OWLAnnotationProperty annotationProperty = this.factory.getOWLAnnotationProperty(property);
+        this.ontologyManager.addAxiom(this.ontology, this.factory.getOWLDeclarationAxiom(annotationProperty));
         this.ontologyManager.addAxiom(this.ontology, this.factory.getOWLAnnotationAssertionAxiom(annotationProperty, subject, value));
     }
 
     private void addPropertyAssertion(IRI propertyIRI, OWLIndividual subject, OWLIndividual object) {
         final OWLObjectProperty property = this.factory.getOWLObjectProperty(propertyIRI);
+        this.addPropertyAssertion(property, subject, object);
+    }
+
+    private void addPropertyAssertion(OWLObjectPropertyExpression property, OWLIndividual subject, OWLIndividual object) {
+        if (!property.isAnonymous()) {
+            this.ontologyManager.addAxiom(this.ontology, this.factory.getOWLDeclarationAxiom(property.asOWLObjectProperty()));
+        }
         this.ontologyManager.addAxiom(this.ontology, this.factory.getOWLObjectPropertyAssertionAxiom(property, subject, object));
     }
 
     private void addClass(OWLIndividual individual, OWLClassExpression aClass) {
         this.ontologyManager.addAxiom(this.ontology, this.factory.getOWLClassAssertionAxiom(aClass, individual));
     }
-    
+
     private void instantiateClassAssertion(OWLIndividual individual, OWLClassExpression aClass, boolean expandNamedClass) {
         if (aClass instanceof OWLClass) {
             if (expandNamedClass) {
@@ -280,7 +288,7 @@ public class PhenexToOWL {
             final OWLClassExpression filler = svf.getFiller();
             final OWLObjectPropertyExpression property = svf.getProperty();
             final OWLIndividual value = this.factory.getOWLAnonymousIndividual();
-            this.ontologyManager.addAxiom(this.ontology, this.factory.getOWLObjectPropertyAssertionAxiom(property, individual, value));
+            this.addPropertyAssertion(property, individual, value);
             this.instantiateClassAssertion(value, filler, false);
         } else if (aClass instanceof OWLObjectIntersectionOf) {
             for (OWLClassExpression operand : ((OWLObjectIntersectionOf)aClass).getOperands()) {
