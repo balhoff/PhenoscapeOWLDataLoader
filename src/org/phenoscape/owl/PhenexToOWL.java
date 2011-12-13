@@ -45,6 +45,7 @@ import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLQuantifiedObjectRestriction;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 public class PhenexToOWL {
@@ -283,10 +284,10 @@ public class PhenexToOWL {
             } else {
                 this.ontologyManager.addAxiom(this.ontology, this.factory.getOWLClassAssertionAxiom(aClass, individual));
             }
-        } else if (aClass instanceof OWLObjectSomeValuesFrom) {
-            final OWLObjectSomeValuesFrom svf = (OWLObjectSomeValuesFrom)aClass;
-            final OWLClassExpression filler = svf.getFiller();
-            final OWLObjectPropertyExpression property = svf.getProperty();
+        } else if (aClass instanceof OWLQuantifiedObjectRestriction) { // either someValuesFrom or allValuesFrom
+            final OWLQuantifiedObjectRestriction restriction = (OWLQuantifiedObjectRestriction)aClass;
+            final OWLClassExpression filler = restriction.getFiller();
+            final OWLObjectPropertyExpression property = restriction.getProperty();
             final OWLIndividual value = this.factory.getOWLAnonymousIndividual();
             this.addPropertyAssertion(property, individual, value);
             this.instantiateClassAssertion(value, filler, false);
