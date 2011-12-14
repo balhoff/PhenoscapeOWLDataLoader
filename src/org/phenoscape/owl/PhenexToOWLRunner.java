@@ -47,7 +47,7 @@ public class PhenexToOWLRunner {
             NeXMLReader reader = new NeXMLReader(file, new OBOSessionImpl());
             dataset = reader.getDataSet();
         }
-        final PhenexToOWL translator = new PhenexToOWL(ontology);
+        final PhenexToOWLClassic translator = new PhenexToOWLClassic(ontology);
         translator.translateDataSet(dataset);
         this.manager.saveOntology(ontology, new RDFXMLOntologyFormat(), IRI.create(this.getOWLFile(file)));
         this.manager.removeOntology(ontology);

@@ -39,6 +39,7 @@ public class Vocab {
         public static final String SPECIMEN = PREFIX + "specimen";
         public static final String HAS_COMPONENT_PART = PREFIX + "has_component_part";
         public static final String HAS_MEMBER = PREFIX + "has_member";
+        public static final String EXHIBITS = PREFIX + "exhibits";
     }
     
     public static class DWC {
