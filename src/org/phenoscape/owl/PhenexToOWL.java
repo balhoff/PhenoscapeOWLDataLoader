@@ -100,30 +100,21 @@ public class PhenexToOWL {
         this.clearMaps();
         this.uuid = UUID.randomUUID().toString();
         this.nodeIncrementer = 0;
-        final String publicationID = dataSet.getPublication().split(":")[1];
-        final String publicationURI = PHENOSCAPE.PUBLICATION + "/" + publicationID;
-        final IRI matrixIRI = IRI.create(publicationURI + "/matrix");
-        final OWLNamedIndividual matrix = this.factory.getOWLNamedIndividual(matrixIRI);
+        final OWLNamedIndividual matrix = this.nextIndividual();
         this.addClass(matrix, this.factory.getOWLClass(IRI.create(CDAO.DATA_MATRIX)));
         if (StringUtils.isNotBlank(dataSet.getPublicationNotes())) {
             final OWLLiteral comment = factory.getOWLLiteral(dataSet.getPublicationNotes());
-            this.addAnnotation(OWLRDFVocabulary.RDFS_COMMENT.getIRI(), matrixIRI, comment);
-            this.addAnnotation(IRI.create(PHENOSCAPE.POSITED_BY), matrixIRI, comment);
+            this.addAnnotation(OWLRDFVocabulary.RDFS_COMMENT.getIRI(), matrix.getIRI(), comment);
+            this.addAnnotation(IRI.create(PHENOSCAPE.POSITED_BY), matrix.getIRI(), comment);
         }
         //TODO other dataSet metadata annotations
-        int taxonIndex = 0;
         for (Taxon taxon : dataSet.getTaxa()) {
-            taxonIndex++;
-            final IRI otuIRI = IRI.create(matrix.getIRI().toURI().toString() + "/otu/" + taxonIndex);
-            final OWLNamedIndividual otu = this.factory.getOWLNamedIndividual(otuIRI);
+            final OWLNamedIndividual otu = this.nextIndividual();
             this.addPropertyAssertion(IRI.create(CDAO.HAS_TU), matrix, otu);
             this.translateTaxon(taxon, otu);
         }
-        int characterIndex = 0;
         for (Character character : dataSet.getCharacters()) {
-            characterIndex++;
-            final IRI characterIRI = IRI.create(matrix.getIRI().toURI().toString() + "/character/" + characterIndex);
-            final OWLNamedIndividual owlCharacter = this.factory.getOWLNamedIndividual(characterIRI);
+            final OWLNamedIndividual owlCharacter = this.nextIndividual();
             this.addPropertyAssertion(IRI.create(CDAO.HAS_CHARACTER), matrix, owlCharacter);
             this.translateCharacter(character, owlCharacter);
         }
@@ -131,8 +122,7 @@ public class PhenexToOWL {
             for (Character character : dataSet.getCharacters()) {
                 final State state = dataSet.getStateForTaxon(taxon, character);
                 if (state != null) {
-                    final IRI matrixCellIRI = IRI.create(this.characterToOWLMap.get(character).getIRI().toURI().toString() + "/otu/" + dataSet.getTaxa().indexOf(taxon));
-                    final OWLNamedIndividual matrixCell = this.factory.getOWLNamedIndividual(matrixCellIRI);
+                    final OWLNamedIndividual matrixCell = this.nextIndividual();
                     this.translateMatrixCell(taxon, character, state, matrixCell);
                 }
             }
@@ -205,12 +195,9 @@ public class PhenexToOWL {
             final OWLLiteral comment = factory.getOWLLiteral(state.getComment());
             this.addAnnotation(OWLRDFVocabulary.RDFS_COMMENT.getIRI(), owlState.getIRI(), comment);
         }
-        int phenotypeIndex = 0;
         final OWLObjectProperty denotes = this.factory.getOWLObjectProperty(IRI.create(IAO.DENOTES));
         for (Phenotype phenotype : state.getPhenotypes()) {
-            phenotypeIndex++;
-            final IRI phenotypeIRI = IRI.create(owlState.getIRI().toURI().toString() + "/phenotype/" + phenotypeIndex);
-            final OWLClass owlPhenotype = this.factory.getOWLClass(phenotypeIRI);
+            final OWLClass owlPhenotype = this.nextClass();
             final OWLObjectAllValuesFrom denotesOnlyPhenotype = this.factory.getOWLObjectAllValuesFrom(denotes, owlPhenotype);
             this.ontologyManager.addAxiom(ontology, this.factory.getOWLClassAssertionAxiom(denotesOnlyPhenotype, owlState));
             this.translatePhenotype(phenotype, owlPhenotype);
@@ -359,11 +346,20 @@ public class PhenexToOWL {
     }
     
     private OWLNamedIndividual nextIndividual() {
-    	final String id = "uuid:" + this.uuid + "-" + this.nodeIncrementer++;
-    	return this.factory.getOWLNamedIndividual(IRI.create(id));
+    	return this.factory.getOWLNamedIndividual(this.nextIRI());
     }
     
-    private static Logger log() {
+    private OWLClass nextClass() {
+    	return this.factory.getOWLClass(this.nextIRI());
+    }
+    
+    private IRI nextIRI() {
+    	final String id = "uuid:" + this.uuid + "-" + this.nodeIncrementer++;
+    	return IRI.create(id);
+    }
+    
+    @SuppressWarnings("unused")
+	private static Logger log() {
     	return Logger.getLogger(PhenexToOWL.class);
     }
 
