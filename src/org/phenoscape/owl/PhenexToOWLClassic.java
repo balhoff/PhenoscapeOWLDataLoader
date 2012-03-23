@@ -197,9 +197,7 @@ public class PhenexToOWLClassic {
         }
         final OWLClassExpression eq = this.factory.getOWLObjectIntersectionOf(quality, this.factory.getOWLObjectSomeValuesFrom(inheresIn, entity));
         //TODO measurements, counts, etc.
-        final OWLObjectProperty exhibits = this.factory.getOWLObjectProperty(IRI.create(PHENOSCAPE.EXHIBITS));
-        final OWLClassExpression exhibitsSomeEQ = this.factory.getOWLObjectSomeValuesFrom(exhibits, eq);
-        this.ontologyManager.addAxiom(this.ontology, this.factory.getOWLEquivalentClassesAxiom(owlPhenotype, exhibitsSomeEQ));
+        this.ontologyManager.addAxiom(this.ontology, this.factory.getOWLEquivalentClassesAxiom(owlPhenotype, eq));
     }
 
     private void translateMatrixCell(Taxon taxon, Character character, State state, OWLNamedIndividual matrixCell) {
@@ -211,11 +209,13 @@ public class PhenexToOWLClassic {
             final IRI taxonIRI = this.convertOBOIRI(taxon.getValidName().getID());
             final OWLClass taxonClass = this.factory.getOWLClass(taxonIRI);
             for (Phenotype phenotype : state.getPhenotypes()) {
-                final OWLClass owlPhenotype = this.phenotypeToOWLMap.get(phenotype);
+                final OWLClass eq = this.phenotypeToOWLMap.get(phenotype);
+                final OWLObjectProperty exhibits = this.factory.getOWLObjectProperty(IRI.create(PHENOSCAPE.EXHIBITS));
+                final OWLClassExpression exhibitsSomeEQ = this.factory.getOWLObjectSomeValuesFrom(exhibits, eq);
                 final OWLAnnotationProperty positedBy = this.factory.getOWLAnnotationProperty(IRI.create(PHENOSCAPE.POSITED_BY));
                 final OWLAnnotation positedByAnnotation = this.factory.getOWLAnnotation(positedBy, matrixCell.getIRI());
                 final Set<OWLAnnotation> annotations = Collections.singleton(positedByAnnotation);
-                final OWLSubClassOfAxiom annotatedSubClassOfAxiom = this.factory.getOWLSubClassOfAxiom(taxonClass, owlPhenotype, annotations);
+                final OWLSubClassOfAxiom annotatedSubClassOfAxiom = this.factory.getOWLSubClassOfAxiom(taxonClass, exhibitsSomeEQ, annotations);
                 this.ontologyManager.addAxiom(this.ontology, annotatedSubClassOfAxiom);
             }
         }

@@ -6,11 +6,12 @@ public class Vocab {
         
         public static final String PREFIX = "http://purl.obolibrary.org/obo/";
         public static final String IS_A = PREFIX + "OBO_REL_is_a";
-        public static final String INHERES_IN = PREFIX + "OBO_REL_inheres_in";
+        public static final String INHERES_IN = PREFIX + "BFO_0000052";
         public static final String INHERES_IN_PART_OF = PREFIX + "OBO_REL_inheres_in_part_of";
         public static final String TOWARDS = PREFIX + "OBO_REL_towards";
-        public static final String HAS_PART = PREFIX + "OBO_REL_has_part";
-        public static final String BEARER_OF = PREFIX + "OBO_REL_bearer_of";
+        public static final String HAS_PART = PREFIX + "BFO_0000051";
+        public static final String PART_OF = PREFIX + "BFO_0000050";
+        public static final String BEARER_OF = PREFIX + "BFO_0000053";
     }
 
     public static class CDAO {
@@ -51,7 +52,11 @@ public class Vocab {
     
     public static class IAO {
         public static final String PREFIX = "http://purl.obolibrary.org/obo/";
-        public static final String DENOTES = "IAO_0000219";
+        public static final String DENOTES = PREFIX + "IAO_0000219";
+    }
+    
+    public static class RO {
+    	public static final String IRI = "http://purl.obolibrary.org/obo/ro.owl";
     }
 
 }

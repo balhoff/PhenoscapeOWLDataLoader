@@ -1,16 +1,24 @@
 package org.phenoscape.owl;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.apache.xmlbeans.XmlException;
 import org.obo.datamodel.Link;
 import org.obo.datamodel.OBOClass;
+import org.obo.datamodel.impl.OBOSessionImpl;
 import org.obo.util.ReasonerUtil;
 import org.obo.util.TermUtil;
+import org.phenoscape.io.NeXMLReader;
+import org.phenoscape.io.nexml_1_0.NeXMLReader_1_0;
 import org.phenoscape.model.Character;
 import org.phenoscape.model.DataSet;
 import org.phenoscape.model.Phenotype;
@@ -22,6 +30,9 @@ import org.phenoscape.owl.Vocab.DWC;
 import org.phenoscape.owl.Vocab.IAO;
 import org.phenoscape.owl.Vocab.OBO_REL;
 import org.phenoscape.owl.Vocab.PHENOSCAPE;
+import org.phenoscape.owl.Vocab.RO;
+import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
@@ -45,6 +56,7 @@ import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.OWLQuantifiedObjectRestriction;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
@@ -56,17 +68,38 @@ public class PhenexToOWL {
     final Map<Character, OWLNamedIndividual> characterToOWLMap = new HashMap<Character, OWLNamedIndividual>();
     final Map<State, OWLNamedIndividual> stateToOWLMap = new HashMap<State, OWLNamedIndividual>();
     final Map<Taxon, OWLNamedIndividual> taxonOTUToOWLMap = new HashMap<Taxon, OWLNamedIndividual>();
-    final Map<Phenotype, OWLClass> phenotypeToOWLMap = new HashMap<Phenotype, OWLClass>(); 
+    final Map<Phenotype, OWLClass> phenotypeToOWLMap = new HashMap<Phenotype, OWLClass>();
+    String uuid;
+    int nodeIncrementer = 0;
+    
+    public static void main(String[] args) throws OWLOntologyStorageException, OWLOntologyCreationException, XmlException, IOException {
+    	final OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+		final OWLOntology ontology = manager.createOntology();
+		final File input = new File(args[0]);
+		DataSet dataset ;
+        try {
+            NeXMLReader_1_0 reader = new NeXMLReader_1_0(input, new OBOSessionImpl());
+            dataset = reader.getDataSet();
+        } catch (XmlException xmle){
+            NeXMLReader reader = new NeXMLReader(input, new OBOSessionImpl());
+            dataset = reader.getDataSet();
+        }
+        final PhenexToOWL pto = new PhenexToOWL(ontology);
+        pto.translateDataSet(dataset);
+		manager.saveOntology(ontology, IRI.create(new File(args[1])));
+    }
 
     public PhenexToOWL(OWLOntology ontology) throws OWLOntologyCreationException {
         this.ontology = ontology;
         this.ontologyManager = ontology.getOWLOntologyManager();
         this.factory = this.ontologyManager.getOWLDataFactory();
-        //this.ontologyManager.applyChange(new AddImport(this.ontology, this.factory.getOWLImportsDeclaration(IRI.create(PHENOSCAPE.PREFIX))));
+        this.ontologyManager.applyChange(new AddImport(this.ontology, this.factory.getOWLImportsDeclaration(IRI.create(RO.IRI))));
     }
 
     public void translateDataSet(DataSet dataSet) {
         this.clearMaps();
+        this.uuid = UUID.randomUUID().toString();
+        this.nodeIncrementer = 0;
         final String publicationID = dataSet.getPublication().split(":")[1];
         final String publicationURI = PHENOSCAPE.PUBLICATION + "/" + publicationID;
         final IRI matrixIRI = IRI.create(publicationURI + "/matrix");
@@ -190,6 +223,7 @@ public class PhenexToOWL {
             return;
         }
         final OWLObjectProperty bearerOf = this.factory.getOWLObjectProperty(IRI.create(OBO_REL.BEARER_OF));
+        final OWLObjectProperty partOf = this.factory.getOWLObjectProperty(IRI.create(OBO_REL.PART_OF));
         final OWLClassExpression entity = this.convertOBOClass(phenotype.getEntity());
         final OWLClassExpression qualityTerm = this.convertOBOClass(phenotype.getQuality());
         final OWLClassExpression quality;
@@ -197,10 +231,19 @@ public class PhenexToOWL {
             final OWLClassExpression relatedEntity = this.convertOBOClass(phenotype.getRelatedEntity());
             final OWLObjectProperty towards = this.factory.getOWLObjectProperty(IRI.create(OBO_REL.TOWARDS));
             quality = this.factory.getOWLObjectIntersectionOf(qualityTerm, this.factory.getOWLObjectSomeValuesFrom(towards, relatedEntity));
+            for (OWLClass usedClass : relatedEntity.getClassesInSignature()) {
+            	this.createRestriction(partOf, usedClass);
+            }
         } else {
             quality = qualityTerm;
         }
         final OWLClassExpression eq = this.factory.getOWLObjectIntersectionOf(entity, this.factory.getOWLObjectSomeValuesFrom(bearerOf, quality));
+        for (OWLClass usedClass : entity.getClassesInSignature()) {
+        	this.createRestriction(partOf, usedClass);
+        }
+        for (OWLClass usedClass : quality.getClassesInSignature()) {
+        	this.createRestriction(bearerOf, usedClass);
+        }
         //TODO measurements, counts, etc.
         final OWLObjectProperty hasPart = this.factory.getOWLObjectProperty(IRI.create(OBO_REL.HAS_PART));
         final OWLClassExpression hasPartSomeEQ = this.factory.getOWLObjectSomeValuesFrom(hasPart, eq);
@@ -288,7 +331,8 @@ public class PhenexToOWL {
             final OWLQuantifiedObjectRestriction restriction = (OWLQuantifiedObjectRestriction)aClass;
             final OWLClassExpression filler = restriction.getFiller();
             final OWLObjectPropertyExpression property = restriction.getProperty();
-            final OWLIndividual value = this.factory.getOWLAnonymousIndividual();
+            // need IRIs for individuals for type materialization
+            final OWLIndividual value = this.nextIndividual();
             this.addPropertyAssertion(property, individual, value);
             this.instantiateClassAssertion(value, filler, false);
         } else if (aClass instanceof OWLObjectIntersectionOf) {
@@ -299,12 +343,28 @@ public class PhenexToOWL {
             this.ontologyManager.addAxiom(this.ontology, this.factory.getOWLClassAssertionAxiom(aClass, individual));
         }
     }
+    
+    private void createRestriction(OWLObjectProperty property, OWLClass ontClass) {
+    		//TODO should get this IRI from a more general place
+			final String newClassIRI = property.getIRI().toString() + "_some_" + ontClass.getIRI().toString();
+			final OWLClass restriction = this.factory.getOWLClass(IRI.create(newClassIRI));
+			this.ontologyManager.addAxiom(this.ontology, this.factory.getOWLEquivalentClassesAxiom(restriction, this.factory.getOWLObjectSomeValuesFrom(property, ontClass)));
+	}
 
     private void clearMaps() {
         characterToOWLMap.clear();
         stateToOWLMap.clear();
         taxonOTUToOWLMap.clear();
         phenotypeToOWLMap.clear();
+    }
+    
+    private OWLNamedIndividual nextIndividual() {
+    	final String id = "uuid:" + this.uuid + "-" + this.nodeIncrementer++;
+    	return this.factory.getOWLNamedIndividual(IRI.create(id));
+    }
+    
+    private static Logger log() {
+    	return Logger.getLogger(PhenexToOWL.class);
     }
 
 }
