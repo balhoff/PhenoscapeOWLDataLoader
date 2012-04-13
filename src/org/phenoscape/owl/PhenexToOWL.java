@@ -354,7 +354,7 @@ public class PhenexToOWL {
     }
     
     private IRI nextIRI() {
-    	final String id = "uuid:" + this.uuid + "-" + this.nodeIncrementer++;
+    	final String id = "http://kb.phenoscape.org/uuid/" + this.uuid + "-" + this.nodeIncrementer++;
     	return IRI.create(id);
     }
     
