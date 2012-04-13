@@ -2,7 +2,6 @@ package org.phenoscape.owl;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -34,7 +33,6 @@ import org.phenoscape.owl.Vocab.RO;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationSubject;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
@@ -58,6 +56,7 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.OWLQuantifiedObjectRestriction;
+import org.semanticweb.owlapi.vocab.DublinCoreVocabulary;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 public class PhenexToOWL {
@@ -139,7 +138,7 @@ public class PhenexToOWL {
         if (taxon.getValidName() != null) {
             final IRI taxonIRI = this.convertOBOIRI(taxon.getValidName().getID());
             this.addClass(this.factory.getOWLNamedIndividual(taxonIRI), this.factory.getOWLClass(IRI.create(PHENOSCAPE.TAXON)));
-            this.addPropertyAssertion(IRI.create(PHENOSCAPE.REPRESENTS_TAXON), otu, this.factory.getOWLNamedIndividual(taxonIRI));
+            this.addPropertyAssertion(IRI.create(CDAO.HAS_EXTERNAL_REFERENCE), otu, this.factory.getOWLNamedIndividual(taxonIRI));
         }
         if (StringUtils.isNotBlank(taxon.getComment())) {
             final OWLLiteral comment = factory.getOWLLiteral(taxon.getComment());
@@ -167,9 +166,11 @@ public class PhenexToOWL {
     private void translateCharacter(Character character, OWLNamedIndividual owlCharacter) {
         this.characterToOWLMap.put(character, owlCharacter);
         this.addClass(owlCharacter, this.factory.getOWLClass(IRI.create(CDAO.STANDARD_CHARACTER)));
+        final StringBuffer descBuffer = new StringBuffer();
         if (StringUtils.isNotBlank(character.getLabel())) {
             final OWLLiteral label = this.factory.getOWLLiteral(character.getLabel());
             this.addAnnotation(OWLRDFVocabulary.RDFS_LABEL.getIRI(), owlCharacter.getIRI(), label);
+            descBuffer.append(character.getLabel() + ":");
         }
         if (StringUtils.isNotBlank(character.getComment())) {
             final OWLLiteral comment = factory.getOWLLiteral(character.getComment());
@@ -178,9 +179,16 @@ public class PhenexToOWL {
         int stateIndex = 0;
         for (State state : character.getStates()) {
             stateIndex++;
-            final IRI stateIRI = IRI.create(owlCharacter.getIRI().toURI().toString() + "/state/" + stateIndex);
-            final OWLNamedIndividual owlState = this.factory.getOWLNamedIndividual(stateIRI);
+            final OWLNamedIndividual owlState = this.nextIndividual();
+            if (StringUtils.isNotBlank(state.getLabel())) {
+                descBuffer.append(" " + stateIndex + ". " + state.getLabel());
+            }
             this.translateState(state, owlState);
+        }
+        final String completeDescription = descBuffer.toString(); // for full-text indexing
+        if (StringUtils.isNotBlank(completeDescription)) {
+        	final OWLLiteral description = factory.getOWLLiteral(completeDescription);
+        	this.addAnnotation(DublinCoreVocabulary.DESCRIPTION.getIRI(), owlCharacter.getIRI(), description);
         }
     }
 
@@ -196,11 +204,14 @@ public class PhenexToOWL {
             this.addAnnotation(OWLRDFVocabulary.RDFS_COMMENT.getIRI(), owlState.getIRI(), comment);
         }
         final OWLObjectProperty denotes = this.factory.getOWLObjectProperty(IRI.create(IAO.DENOTES));
+        final OWLObjectProperty denotesExemplar = this.factory.getOWLObjectProperty(IRI.create(PHENOSCAPE.DENOTES_EXEMPLAR));
         for (Phenotype phenotype : state.getPhenotypes()) {
             final OWLClass owlPhenotype = this.nextClass();
             final OWLObjectAllValuesFrom denotesOnlyPhenotype = this.factory.getOWLObjectAllValuesFrom(denotes, owlPhenotype);
+            final OWLObjectSomeValuesFrom denotesExemplarWithPhenotype = this.factory.getOWLObjectSomeValuesFrom(denotesExemplar, owlPhenotype);
             this.ontologyManager.addAxiom(ontology, this.factory.getOWLClassAssertionAxiom(denotesOnlyPhenotype, owlState));
             this.translatePhenotype(phenotype, owlPhenotype);
+            this.instantiateClassAssertion(owlState, denotesExemplarWithPhenotype, true);
         }
     }
 
@@ -249,11 +260,11 @@ public class PhenexToOWL {
             final OWLNamedIndividual taxonIndividual = this.factory.getOWLNamedIndividual(taxonIRI);
             for (Phenotype phenotype : state.getPhenotypes()) {
                 final OWLClass owlPhenotype = this.phenotypeToOWLMap.get(phenotype);
-                final OWLAnnotationProperty positedBy = this.factory.getOWLAnnotationProperty(IRI.create(PHENOSCAPE.POSITED_BY));
-                final OWLAnnotation positedByAnnotation = this.factory.getOWLAnnotation(positedBy, matrixCell.getIRI());
-                final Set<OWLAnnotation> annotations = Collections.singleton(positedByAnnotation);
-                final OWLClassAssertionAxiom annotatedClassAssertion = this.factory.getOWLClassAssertionAxiom(owlPhenotype, taxonIndividual, annotations);
-                this.ontologyManager.addAxiom(this.ontology, annotatedClassAssertion);
+                //final OWLAnnotationProperty positedBy = this.factory.getOWLAnnotationProperty(IRI.create(PHENOSCAPE.POSITED_BY));
+                //final OWLAnnotation positedByAnnotation = this.factory.getOWLAnnotation(positedBy, matrixCell.getIRI());
+                ///final Set<OWLAnnotation> annotations = Collections.singleton(positedByAnnotation);
+                final OWLClassAssertionAxiom classAssertion = this.factory.getOWLClassAssertionAxiom(owlPhenotype, taxonIndividual);
+                this.ontologyManager.addAxiom(this.ontology, classAssertion);
                 this.instantiateClassAssertion(taxonIndividual, owlPhenotype, true);
             }
         }

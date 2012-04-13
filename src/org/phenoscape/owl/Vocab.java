@@ -28,19 +28,19 @@ public class Vocab {
         public static final String BELONGS_TO_CHARACTER = PREFIX + "belongs_to_Character";
         public static final String BELONGS_TO_TU = PREFIX + "belongs_to_TU";
         public static final String HAS_STATE = PREFIX + "has_State";
-
+        public static final String HAS_EXTERNAL_REFERENCE = PREFIX + "has_External_Reference";
     }
     
     public static class PHENOSCAPE {
         public static final String PREFIX = "http://vocab.phenoscape.org/";
         public static final String PUBLICATION = PREFIX + "publication";
         public static final String TAXON = PREFIX + "taxon";
-        public static final String REPRESENTS_TAXON = PREFIX + "represents_taxon"; //FIXME - replace with CDAO:external_reference
         public static final String POSITED_BY = PREFIX + "posited_by";
         public static final String SPECIMEN = PREFIX + "specimen";
         public static final String HAS_COMPONENT_PART = PREFIX + "has_component_part";
         public static final String HAS_MEMBER = PREFIX + "has_member";
         public static final String EXHIBITS = PREFIX + "exhibits";
+        public static final String DENOTES_EXEMPLAR = PREFIX + "denotes_exemplar"; 
     }
     
     public static class DWC {

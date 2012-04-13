@@ -111,7 +111,7 @@ public class PhenexToOWLClassic {
         if (taxon.getValidName() != null) {
             final IRI taxonIRI = this.convertOBOIRI(taxon.getValidName().getID());
             this.addClass(this.factory.getOWLNamedIndividual(taxonIRI), this.factory.getOWLClass(IRI.create(PHENOSCAPE.TAXON)));
-            this.addPropertyAssertion(IRI.create(PHENOSCAPE.REPRESENTS_TAXON), otu, this.factory.getOWLNamedIndividual(taxonIRI));
+            this.addPropertyAssertion(IRI.create(CDAO.HAS_EXTERNAL_REFERENCE), otu, this.factory.getOWLNamedIndividual(taxonIRI));
         }
         if (StringUtils.isNotBlank(taxon.getComment())) {
             final OWLLiteral comment = factory.getOWLLiteral(taxon.getComment());
