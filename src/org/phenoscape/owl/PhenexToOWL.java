@@ -246,7 +246,7 @@ public class PhenexToOWL {
 		//TODO measurements, counts, etc.
 		final OWLObjectProperty hasPart = this.factory.getOWLObjectProperty(IRI.create(OBO_REL.HAS_PART));
 		final OWLClassExpression hasPartSomeEQ = this.factory.getOWLObjectSomeValuesFrom(hasPart, eq);
-		this.ontologyManager.addAxiom(this.ontology, this.factory.getOWLEquivalentClassesAxiom(owlPhenotype, hasPartSomeEQ));
+		this.ontologyManager.addAxiom(this.ontology, this.factory.getOWLSubClassOfAxiom(owlPhenotype, hasPartSomeEQ));
 	}
 
 	private void translateMatrixCell(Taxon taxon, Character character, State state, OWLNamedIndividual matrixCell) {
