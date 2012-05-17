@@ -165,38 +165,36 @@ public class PhenexToOWL {
 	private void translateCharacter(Character character, OWLNamedIndividual owlCharacter) {
 		this.characterToOWLMap.put(character, owlCharacter);
 		this.addClass(owlCharacter, this.factory.getOWLClass(IRI.create(CDAO.STANDARD_CHARACTER)));
-		final StringBuffer descBuffer = new StringBuffer();
 		if (StringUtils.isNotBlank(character.getLabel())) {
 			final OWLLiteral label = this.factory.getOWLLiteral(character.getLabel());
 			this.addAnnotation(OWLRDFVocabulary.RDFS_LABEL.getIRI(), owlCharacter.getIRI(), label);
-			descBuffer.append(character.getLabel() + ":");
 		}
 		if (StringUtils.isNotBlank(character.getComment())) {
 			final OWLLiteral comment = factory.getOWLLiteral(character.getComment());
 			this.addAnnotation(OWLRDFVocabulary.RDFS_COMMENT.getIRI(), owlCharacter.getIRI(), comment);
 		}
-		int stateIndex = 0;
 		for (State state : character.getStates()) {
-			stateIndex++;
 			final OWLNamedIndividual owlState = this.nextIndividual();
-			if (StringUtils.isNotBlank(state.getLabel())) {
-				descBuffer.append(" " + stateIndex + ". " + state.getLabel());
-			}
-			this.translateState(state, owlState);
+			this.translateState(state, owlState, character.getLabel());
+		}
+	}
+
+	private void translateState(State state, OWLNamedIndividual owlState, String characterLabel) {
+		this.stateToOWLMap.put(state, owlState);
+		this.addClass(owlState, this.factory.getOWLClass(IRI.create(CDAO.STANDARD_STATE)));
+		final StringBuffer descBuffer = new StringBuffer();
+		if (StringUtils.isNotBlank(characterLabel)) {
+			descBuffer.append(characterLabel + ": ");
+		}
+		if (StringUtils.isNotBlank(state.getLabel())) {
+			final OWLLiteral label = this.factory.getOWLLiteral(state.getLabel());
+			this.addAnnotation(OWLRDFVocabulary.RDFS_LABEL.getIRI(), owlState.getIRI(), label);
+			descBuffer.append(state.getLabel());
 		}
 		final String completeDescription = descBuffer.toString(); // for full-text indexing
 		if (StringUtils.isNotBlank(completeDescription)) {
 			final OWLLiteral description = factory.getOWLLiteral(completeDescription);
-			this.addAnnotation(DublinCoreVocabulary.DESCRIPTION.getIRI(), owlCharacter.getIRI(), description);
-		}
-	}
-
-	private void translateState(State state, OWLNamedIndividual owlState) {
-		this.stateToOWLMap.put(state, owlState);
-		this.addClass(owlState, this.factory.getOWLClass(IRI.create(CDAO.STANDARD_STATE)));
-		if (StringUtils.isNotBlank(state.getLabel())) {
-			final OWLLiteral label = this.factory.getOWLLiteral(state.getLabel());
-			this.addAnnotation(OWLRDFVocabulary.RDFS_LABEL.getIRI(), owlState.getIRI(), label);
+			this.addAnnotation(DublinCoreVocabulary.DESCRIPTION.getIRI(), owlState.getIRI(), description);
 		}
 		if (StringUtils.isNotBlank(state.getComment())) {
 			final OWLLiteral comment = factory.getOWLLiteral(state.getComment());
@@ -325,12 +323,12 @@ public class PhenexToOWL {
 			}
 		} else if (aClass instanceof OWLQuantifiedObjectRestriction) { // either someValuesFrom or allValuesFrom
 			final OWLQuantifiedObjectRestriction restriction = (OWLQuantifiedObjectRestriction)aClass;
-		final OWLClassExpression filler = restriction.getFiller();
-		final OWLObjectPropertyExpression property = restriction.getProperty();
-		// need IRIs for individuals for type materialization
-		final OWLIndividual value = this.nextIndividual();
-		this.addPropertyAssertion(property, individual, value);
-		this.instantiateClassAssertion(value, filler, false);
+			final OWLClassExpression filler = restriction.getFiller();
+			final OWLObjectPropertyExpression property = restriction.getProperty();
+			// need IRIs for individuals for type materialization
+			final OWLIndividual value = this.nextIndividual();
+			this.addPropertyAssertion(property, individual, value);
+			this.instantiateClassAssertion(value, filler, false);
 		} else if (aClass instanceof OWLObjectIntersectionOf) {
 			for (OWLClassExpression operand : ((OWLObjectIntersectionOf)aClass).getOperands()) {
 				this.instantiateClassAssertion(individual, operand, false);
